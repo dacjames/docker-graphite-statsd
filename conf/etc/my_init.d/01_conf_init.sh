@@ -10,7 +10,7 @@ conf_dir=/etc/graphite-statsd/conf
 graphite_dir_contents=$(find /opt/graphite -mindepth 1 -print -quit)
 graphite_conf_dir_contents=$(find /opt/graphite/conf -mindepth 1 -print -quit)
 graphite_webapp_dir_contents=$(find /opt/graphite/webapp/graphite -mindepth 1 -print -quit)
-graphite_storage_dir_contents=$(find /opt/graphite/storage -mindepth 1 -print -quit)
+graphite_storage_dir_contents=$(find /var/lib/graphite/storage -mindepth 1 -print -quit)
 if [[ -z $graphite_dir_contents ]]; then
   git clone -b 0.9.15 --depth 1 https://github.com/graphite-project/graphite-web.git /usr/local/src/graphite-web
   cd /usr/local/src/graphite-web && python ./setup.py install

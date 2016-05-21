@@ -29,6 +29,9 @@ RUN pip install \
     django-tagging==0.3.1 \
     twisted==11.1.0
 
+# Make Graphite lib directory
+RUN mkdir -p /var/lib/graphite/storage
+
 # install graphite
 RUN git clone -b 0.9.15 --depth 1 https://github.com/graphite-project/graphite-web.git /usr/local/src/graphite-web
 WORKDIR /usr/local/src/graphite-web
@@ -74,13 +77,14 @@ ADD conf/etc/service/nginx/run /etc/service/nginx/run
 ADD conf /etc/graphite-statsd/conf
 ADD conf/etc/my_init.d/01_conf_init.sh /etc/my_init.d/01_conf_init.sh
 
+
 # cleanup
-RUN apt-get clean\
- && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # defaults
-EXPOSE 80:80 2003-2004:2003-2004 2023-2024:2023-2024 8125:8125/udp 8126:8126
-VOLUME ["/opt/graphite/conf", "/opt/graphite/storage", "/etc/nginx", "/opt/statsd", "/etc/logrotate.d", "/var/log"]
+EXPOSE 80:80 2003-2004:2003-2004 2023-2024:2023-2024
+VOLUME ["/opt/graphite/conf", "/var/lib/graphite/storage", "/etc/nginx", "/etc/logrotate.d", "/var/log"]
 WORKDIR /
 ENV HOME /root
 CMD ["/sbin/my_init"]
