@@ -1,22 +1,13 @@
-# Docker Image for Graphite
 
-## Get Graphite running instantly to use with sitespeed.io
 
-This is a fork from [Hopsoft](https://github.com/hopsoft/docker-graphite-statsd) Massive love to Hopsoft for setting up the original image.
 
-In this image, Graphite is always setup with Basic Auth (feed your .htpasswd file when starting) and the Graphite data dir is set to */opt/graphite/storage/whisper*.
 
 ## Quick Start
 
 ```sh
-sudo docker run -d \
-  --name graphite \
-  -p 8080:80 \
-  -p 2003:2003 \
-  sitespeedio/graphite
 ```
 
-This starts a Docker container named: **graphite** with Basic Auth **guest/guest**. Please change the login that by feeding your own .htpasswd file when starting the container ([more info about how to create your .htpasswd file](http://httpd.apache.org/docs/2.2/programs/htpasswd.html)):
+This starts a Docker container named: **graphite**
 
 ```sh
 sudo docker run -d \
@@ -27,22 +18,66 @@ sudo docker run -d \
   sitespeedio/graphite
 ```
 
-And the final config that you should do is map the Graphite data dir outside of your container:
+### Includes the following components
+
+* [Nginx](http://nginx.org/) - reverse proxies the graphite dashboard
+* [Graphite](http://graphite.readthedocs.org/en/latest/) - front-end dashboard
+* [Carbon](http://graphite.readthedocs.org/en/latest/carbon-daemons.html) - back-end
+* [Statsd](https://github.com/etsy/statsd/wiki) - UDP based back-end proxy
+
+### Mapped Ports
+
+Host | Container | Service
+---- | --------- | -------------------------------------------------------------------------------------------------------------------
+  80 |        80 | [nginx](https://www.nginx.com/resources/admin-guide/)
+2003 |      2003 | [carbon](https://graphite.readthedocs.org/en/latest/feeding-carbon.html)
+2004 |      2004 | [carbon aggregator](https://graphite.readthedocs.org/en/latest/carbon-daemons.html#carbon-aggregator-py)
+2023 |      2023 | [carbon pickle](https://graphite.readthedocs.org/en/latest/feeding-carbon.html#the-pickle-protocol)
+2024 |      2024 | [carbon aggregator pickle](https://graphite.readthedocs.org/en/latest/feeding-carbon.html#the-pickle-protocol)
+8125 |      8125 | [statsd](https://github.com/etsy/statsd/blob/master/docs/server.md)
+8126 |      8126 | [statsd admin](https://github.com/etsy/statsd/blob/v0.7.2/docs/admin_interface.md)
+
+**Note**: You can override the default port mappings by specifying them when starting the container.
 
 ```sh
-sudo docker run -d \
-  --name graphite \
-  -p 8080:80 \
-  -p 2003:2003 \
-  -v /local/path/to/.htpasswd:/etc/nginx/.htpasswd \
-  -v /path/to/data/graphite/storage/whisper:/opt/graphite/storage/whisper \
-  sitespeedio/graphite
+docker run -d\
+ --name graphite\
+ --restart=always\
+ -p 80:80\
+ -p 2003-2004:2003-2004\
+ -p 2023-2024:2023-2024\
+ -p 8125:8125/udp\
+ -p 8126:8126\
+ hopsoft/graphite-statsd
+```
+
+### Mounted Volumes
+
+Host              | Container                  | Notes
+----------------- | -------------------------- | -------------------------------
+DOCKER ASSIGNED   | /opt/graphite/conf         | graphite config
+DOCKER ASSIGNED   | /opt/graphite/storage      | graphite stats storage
+DOCKER ASSIGNED   | /etc/nginx                 | nginx config
+DOCKER ASSIGNED   | /opt/statsd                | statsd config
+DOCKER ASSIGNED   | /etc/logrotate.d           | logrotate config
+DOCKER ASSIGNED   | /var/log                   | log files
+
+### Base Image
+
+Built using [Phusion's base image](https://github.com/phusion/baseimage-docker).
+
+* All Graphite related processes are run as daemons & monitored with [runit](http://smarden.org/runit/).
+* Includes additional services such as logrotate.
+
+## Start Using Graphite & Statsd
+
+### Send Some Stats
+
+```sh
 ```
 
 TODO also map log dirs
 
-## Data retention
-You can change how often data will be stored in the  [storage-schemas.conf](https://github.com/sitespeedio/docker-graphite-statsd/blob/master/conf/graphite/storage-schemas.conf) and how metrics will be aggregated over time in [storage-aggregation.conf](https://github.com/sitespeedio/docker-graphite-statsd/blob/master/conf/graphite/storage-aggregation.conf).
 
 The default one looks like this:
 
@@ -55,23 +90,12 @@ It will store data for 2 months, change that if you need to store data longer. E
 To change it, you can feed the image with a new *storage-schemas.conf*. The one you want to replace is located  
 */opt/graphite/conf/storage-schemas.conf*
 
-Start your image like this:
 
-```sh
-sudo docker run -d \
-  --name graphite \
-  -p 8080:80 \
-  -p 2003:2003 \
-  -v /local/path/to/.htpasswd:/etc/nginx/.htpasswd \
-  -v /path/to/data/graphite/storage/whisper:/opt/graphite/storage/whisper \
-  -v /path/to/storage-schemas.conf:/opt/graphite/conf/storage-schemas.conf \
-  sitespeedio/graphite
-```
+Simply specify the desired volumes when starting the container.
 
 
-### Base Image
+**Note**: The container will initialize properly if you mount empty volumes at
+          `/opt/graphite`, `/opt/graphite/conf`, `/opt/graphite/storage`, or `/opt/statsd`
 
 Built using [Phusion's base image](https://github.com/phusion/baseimage-docker).
 
-* All Graphite related processes are run as daemons & monitored with [runit](http://smarden.org/runit/).
-* Includes additional services such as logrotate.
