@@ -6,28 +6,28 @@ RUN apt-get -y update\
  && apt-get -y upgrade
 
 # dependencies
-RUN apt-get -y --force-yes install vim\
- nginx\
- python-dev\
- python-flup\
- python-pip\
- expect\
- git\
- memcached\
- sqlite3\
- libcairo2\
- libcairo2-dev\
- python-cairo\
- pkg-config\
- nodejs
+RUN apt-get -y --force-yes install \
+        vim \
+        nginx \
+        python-dev \
+        python-flup \
+        python-pip \
+        expect \
+        git \
+        memcached \
+        sqlite3 \
+        libcairo2 \
+        libcairo2-dev \
+        python-cairo \
+        pkg-config \
+        nodejs
 
 # python dependencies
-RUN pip install django==1.5.12\
- python-memcached==1.53\
- django-tagging==0.3.1\
- whisper==0.9.15\
- twisted==11.1.0\
- txAMQP==0.6.2
+RUN pip install \
+    django==1.5.12 \
+    python-memcached==1.53 \
+    django-tagging==0.3.1 \
+    twisted==11.1.0
 
 # install graphite
 RUN git clone -b 0.9.15 --depth 1 https://github.com/graphite-project/graphite-web.git /usr/local/src/graphite-web
@@ -47,8 +47,8 @@ WORKDIR /usr/local/src/carbon
 RUN python ./setup.py install
 
 # install statsd
-RUN git clone -b v0.7.2 https://github.com/etsy/statsd.git /opt/statsd
-ADD conf/opt/statsd/config.js /opt/statsd/config.js
+# RUN git clone -b v0.7.2 https://github.com/etsy/statsd.git /opt/statsd
+# ADD conf/opt/statsd/config.js /opt/statsd/config.js
 
 # config nginx
 RUN rm /etc/nginx/sites-enabled/default
@@ -67,7 +67,7 @@ ADD conf/etc/logrotate.d/graphite-statsd /etc/logrotate.d/graphite-statsd
 ADD conf/etc/service/carbon/run /etc/service/carbon/run
 ADD conf/etc/service/carbon-aggregator/run /etc/service/carbon-aggregator/run
 ADD conf/etc/service/graphite/run /etc/service/graphite/run
-ADD conf/etc/service/statsd/run /etc/service/statsd/run
+# ADD conf/etc/service/statsd/run /etc/service/statsd/run
 ADD conf/etc/service/nginx/run /etc/service/nginx/run
 
 # default conf setup
